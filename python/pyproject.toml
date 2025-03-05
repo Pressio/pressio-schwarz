@@ -1,0 +1,21 @@
+[project]
+name = "pschwarz"
+version = "0.1"
+authors = [
+	{name = "Christopher R. Wentland"},
+	{email = "crwentl@sandia.gov"}
+]
+description = "Python utilities for pressio-schwarz"
+readme = "README.md"
+
+requires-python = ">=3.6"
+dependencies = [
+	"numpy",
+	"matplotlib",
+    "scipy",
+]
+
+[build-system]
+requires = ["setuptools >= 64.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
