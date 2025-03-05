@@ -1,7 +1,7 @@
 #include <chrono>
 #include "pressiodemoapps/swe2d.hpp"
-#include "pda-schwarz/schwarz.hpp"
-#include "pda-schwarz/rom_utils.hpp"
+#include "pressio-schwarz/schwarz.hpp"
+#include "pressio-schwarz/rom_utils.hpp"
 #include "../../observer.hpp"
 
 

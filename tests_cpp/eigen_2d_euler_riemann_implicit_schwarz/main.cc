@@ -1,6 +1,6 @@
 #include <chrono>
 #include "pressiodemoapps/euler2d.hpp"
-#include "pda-schwarz/schwarz.hpp"
+#include "pressio-schwarz/schwarz.hpp"
 #include "../observer.hpp"
 
 int main()

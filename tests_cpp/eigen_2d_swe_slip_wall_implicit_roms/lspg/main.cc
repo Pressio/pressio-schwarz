@@ -6,7 +6,7 @@
 #include <chrono>
 #include "pressio/rom_subspaces.hpp"
 #include "pressio/rom_lspg_unsteady.hpp"
-#include "pda-schwarz/rom_utils.hpp"
+#include "pressio-schwarz/rom_utils.hpp"
 
 int main()
 {
