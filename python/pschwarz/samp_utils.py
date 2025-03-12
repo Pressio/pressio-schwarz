@@ -395,6 +395,8 @@ def calc_eigenvec_samples(
     printrate=0.01,
 ):
 
+    print("Starting eigenvector sampling")
+
     ndof_per_cell = round(basis.shape[0] / ncells)
     nmodes = basis.shape[-1]
 
@@ -413,7 +415,7 @@ def calc_eigenvec_samples(
     search_dof_ids  = np.concatenate([search_cell_ids * (i + 1) for i in range(ndof_per_cell)])
     ncells_search = len(search_cell_ids)
 
-    rateperc = int(numsamps * printrate)
+    rateperc = max(int(numsamps * printrate), 1)
     while samp_ids.shape[0] < numsamps:
 
         if (samp_ids.shape[0] % rateperc) == 0:

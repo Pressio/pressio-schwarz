@@ -13,7 +13,7 @@ def make_subdomain_list(ndom_list, default=None):
     return [[[default for _ in range(ndom_list[2])] for _ in range(ndom_list[1])] for _ in range(ndom_list[0])]
 
 
-def main(decompdir, sampdir, outdir=None):
+def main(decompdir, sampdir, outdir=None, outstr=""):
 
     colors = ["r", "b", "c", "m"]
 
@@ -118,7 +118,7 @@ def main(decompdir, sampdir, outdir=None):
     if outdir is None:
         plt.show()
     else:
-        outfile = os.path.join(outdir, "samp_decomp_mesh.png")
+        outfile = os.path.join(outdir, f"samp_decomp_mesh{outstr}.png")
         print(f"Saving image to {outfile}")
         plt.savefig(outfile)
 
