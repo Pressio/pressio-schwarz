@@ -23,3 +23,6 @@ ctest -j4
 
 Python utilities for data extraction, visualization, PROM preparation, and error measurement can be found in the ```python/``` directory. Refer to the README there for instructions on installing and using the associated local package.
 
+# Experimental campaign runner
+
+A C++ utility for executing a large number of **pressio-demoapps** and **pressio-schwarz** simulations from YAML input files is provided in the [pdas-experiments](https://github.com/sandialabs/pdas-experiments) repository. This vastly simplifies the numerical experimentation process for the parameterized ODEs supplied by **pressio-demoapps**, and also serves as a repository for input files associated with experimental campaigns presented in publications.
