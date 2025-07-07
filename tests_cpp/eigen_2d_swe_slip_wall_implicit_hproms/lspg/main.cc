@@ -70,7 +70,6 @@ int main()
 
     // define ROM problem
     auto problem = plspg::create_unsteady_problem(scheme, trialSpaceHyp, fomSystemHyp, hrUpdater);
-    auto stepper = problem.lspgStepper();
 
     // define solver
     using hessian_t       = Eigen::Matrix<scalar_type, -1, -1>;
@@ -78,7 +77,7 @@ int main()
     using linear_solver_t = pressio::linearsolvers::Solver<solver_tag, hessian_t>;
     linear_solver_t linearSolver;
 
-    auto solver = pressio::create_gauss_newton_solver(stepper, linearSolver);
+    auto solver = pressio::create_gauss_newton_solver(problem, linearSolver);
     solver.setStopCriterion(pnlins::Stop::WhenAbsolutel2NormOfGradientBelowTolerance);
     solver.setStopTolerance(1e-5);
 
@@ -91,7 +90,7 @@ int main()
     const auto Nsteps = pressio::ode::StepCount(tf/dt);
 
     auto runtimeStart = std::chrono::high_resolution_clock::now();
-    pode::advance_n_steps(stepper, reducedState, 0.0, dt, Nsteps, Obs, solver);
+    pode::advance_n_steps(problem, reducedState, 0.0, dt, Nsteps, Obs, solver);
     auto runtimeEnd = std::chrono::high_resolution_clock::now();
     auto nsElapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(runtimeEnd - runtimeStart).count();
     double secElapsed = static_cast<double>(nsElapsed) * 1e-9;
