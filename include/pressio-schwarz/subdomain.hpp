@@ -504,8 +504,7 @@ public:
     using linsolver_t = pressio::linearsolvers::Solver<solver_tag, hessian_t>;
 
     using problem_t       = decltype(plspg::create_unsteady_problem(pressio::ode::StepScheme(), std::declval<trial_t&>(), std::declval<app_t&>()));
-    using stepper_t       = decltype(std::declval<problem_t>().lspgStepper());
-    using nonlinsolver_t  = decltype(pressio::create_gauss_newton_solver(std::declval<stepper_t&>(), std::declval<linsolver_t&>()));
+    using nonlinsolver_t  = decltype(pressio::create_gauss_newton_solver(std::declval<problem_t&>(), std::declval<linsolver_t&>()));
 
 public:
 
@@ -528,9 +527,8 @@ public:
              probId, odeScheme, fluxOrder, icflag, icFileRoot, userParams,
              transRoot, basisRoot, nmodes)
     , m_problem(plspg::create_unsteady_problem(odeScheme, this->m_trialSpace, *(this->m_app)))
-    , m_stepper(m_problem.lspgStepper())
     , m_linSolverObj(std::make_shared<linsolver_t>())
-    , m_nonlinSolver(pressio::create_gauss_newton_solver(m_stepper, *m_linSolverObj))
+    , m_nonlinSolver(pressio::create_gauss_newton_solver(m_problem, *m_linSolverObj))
     {
 
         m_nonlinSolver.setStopCriterion(pressio::nonlinearsolvers::Stop::WhenAbsolutel2NormOfCorrectionBelowTolerance);
@@ -539,12 +537,11 @@ public:
     }
 
     void doStep(pode::StepStartAt<double> startTime, pode::StepCount step, pode::StepSize<double> dt) final {
-        m_stepper(this->m_stateReduced, startTime, step, dt, m_nonlinSolver);
+        m_problem(this->m_stateReduced, startTime, step, dt, m_nonlinSolver);
     }
 
 private:
     problem_t m_problem;
-    stepper_t m_stepper;
     std::shared_ptr<linsolver_t> m_linSolverObj;
     nonlinsolver_t m_nonlinSolver;
 };
@@ -848,13 +845,11 @@ public:
                                               std::declval<app_t&>(),
                                               std::declval<updaterHyp_t&>()));
 
-    using stepperHyp_t = std::remove_reference_t<
-        decltype(std::declval<problemHyp_t>().lspgStepper())>;
     using tag_t = pressio::nonlinearsolvers::impl::CompactWeightedGaussNewtonNormalEqTag;
 
     using nonlinsolverHyp_t =
         decltype(pressio::create_gauss_newton_solver(
-            std::declval<stepperHyp_t&>(),
+            std::declval<problemHyp_t&>(),
             std::declval<linsolver_t&>(),
             std::declval<weigh_t&>(),
             std::declval<tag_t>()
@@ -892,7 +887,7 @@ public:
     }
 
     void doStep(pode::StepStartAt<double> startTime, pode::StepCount step, pode::StepSize<double> dt) final {
-        (*m_stepperHyper)(this->m_stateReduced, startTime, step, dt, *m_nonlinSolverHyper);
+        (*m_problemHyper)(this->m_stateReduced, startTime, step, dt, *m_nonlinSolverHyper);
     }
 
     // Again, this has to be done because the hyper-reduced mesh
@@ -915,8 +910,6 @@ public:
                                             *(this->m_appHyper),
                                             *m_updaterHyper));
 
-        m_stepperHyper = &(m_problemHyper->lspgStepper());
-
         m_linSolverObjHyper = std::make_shared<linsolver_t>();
         m_tag = std::make_shared<tag_t>();
 
@@ -932,7 +925,7 @@ public:
 
         m_nonlinSolverHyper = std::make_shared<nonlinsolverHyp_t>(
             pressio::create_gauss_newton_solver(
-                *m_stepperHyper, *m_linSolverObjHyper, *m_weigher, *m_tag
+                *m_problemHyper, *m_linSolverObjHyper, *m_weigher, *m_tag
             )
         );
 
@@ -948,7 +941,6 @@ public:
     int m_nmodes_gpod;
     std::shared_ptr<updaterHyp_t> m_updaterHyper;
     std::shared_ptr<problemHyp_t> m_problemHyper;
-    stepperHyp_t * m_stepperHyper;
     std::shared_ptr<linsolver_t> m_linSolverObjHyper;
     std::shared_ptr<weigh_t> m_weigher;
     std::shared_ptr<tag_t> m_tag;

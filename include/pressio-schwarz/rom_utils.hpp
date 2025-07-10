@@ -344,7 +344,7 @@ public:
         }
     }
 
-    int leadingDim() { return leading_dim; }
+    int leadingDim() const { return leading_dim; }
 
     // operator on residual
     void operator()(const Eigen::Matrix<scalar_t, -1, 1> & operand,

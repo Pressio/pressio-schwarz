@@ -71,10 +71,8 @@ int main()
 
     // define ROM problem
     auto problem = plspg::create_unsteady_problem(scheme, trialSpaceHyp, fomSystemHyp, hrUpdater);
-    auto stepper = problem.lspgStepper();
 
     // define solver
-    using stepper_t       = decltype(stepper);
     using hessian_t       = Eigen::Matrix<scalar_type, -1, -1>;
     using solver_tag      = pressio::linearsolvers::direct::HouseholderQR;
     using linear_solver_t = pressio::linearsolvers::Solver<solver_tag, hessian_t>;
@@ -85,7 +83,7 @@ int main()
     // Gauss-Newton with gappy POD weighting
     auto weighter = pschwarz::Weigher<scalar_type>("gappy_pod", basisfile, sampleFile, nmodes_gpod, numDofsPerCell);
     using weigher_t = decltype(weighter);
-    auto solver = pressio::create_gauss_newton_solver(stepper, linearSolver, weighter, tag);
+    auto solver = pressio::create_gauss_newton_solver(problem, linearSolver, weighter, tag);
     solver.setStopCriterion(pnlins::Stop::WhenAbsolutel2NormOfGradientBelowTolerance);
     solver.setStopTolerance(1e-5);
 
@@ -98,7 +96,7 @@ int main()
     const auto Nsteps = pressio::ode::StepCount(tf/dt);
 
     auto runtimeStart = std::chrono::high_resolution_clock::now();
-    pode::advance_n_steps(stepper, reducedState, 0.0, dt, Nsteps, Obs, solver);
+    pode::advance_n_steps(problem, reducedState, 0.0, dt, Nsteps, Obs, solver);
     auto runtimeEnd = std::chrono::high_resolution_clock::now();
     auto nsElapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(runtimeEnd - runtimeStart).count();
     double secElapsed = static_cast<double>(nsElapsed) * 1e-9;
