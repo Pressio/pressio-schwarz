@@ -50,7 +50,7 @@
 #include <vector>
 #include <math.h>
 
-#include "pressio/ode_steppers_implicit.hpp"
+#include "pressio/ode_steppers.hpp"
 #include "pressio/rom_subspaces.hpp"
 #include "pressio/rom_lspg_unsteady.hpp"
 
@@ -63,7 +63,7 @@ namespace pschwarz {
 
 namespace pda = pressiodemoapps;
 namespace pode = pressio::ode;
-namespace pls = pressio::linearsolvers;
+namespace pls = pressio::linsol;
 namespace prom = pressio::rom;
 namespace plspg = pressio::rom::lspg;
 
@@ -151,10 +151,10 @@ public:
             std::declval<app_t&>())
         );
 
-    using lin_solver_tag = pressio::linearsolvers::iterative::Bicgstab;
-    using linsolver_t    = pressio::linearsolvers::Solver<lin_solver_tag, jacob_t>;
+    using lin_solver_tag = pls::iterative::Bicgstab;
+    using linsolver_t    = pls::Solver<lin_solver_tag, jacob_t>;
     using nonlinsolver_t =
-        decltype( pressio::create_newton_solver( std::declval<stepper_t &>(),
+        decltype( pressio::nlsol::create_newton_solver( std::declval<stepper_t &>(),
                             std::declval<linsolver_t&>()) );
 
 public:
@@ -179,7 +179,7 @@ public:
     , m_state(m_app->initialCondition())
     , m_stepper(pressio::ode::create_implicit_stepper(odeScheme, *(m_app)))
     , m_linSolverObj(std::make_shared<linsolver_t>())
-    , m_nonlinSolver(pressio::create_newton_solver(m_stepper, *m_linSolverObj))
+    , m_nonlinSolver(pressio::nlsol::create_newton_solver(m_stepper, *m_linSolverObj))
     {
         m_fullMeshDims = calc_mesh_dims(*m_mesh);
 
@@ -201,7 +201,7 @@ public:
             }
         }
 
-        m_nonlinSolver.setStopCriterion(pressio::nonlinearsolvers::Stop::WhenAbsolutel2NormOfCorrectionBelowTolerance);
+        m_nonlinSolver.setStopCriterion(pressio::nlsol::Stop::WhenAbsolutel2NormOfCorrectionBelowTolerance);
         m_nonlinSolver.setStopTolerance(1e-5);
     }
 
@@ -500,11 +500,11 @@ public:
     using trial_t = typename base_t::trial_t;
 
     using hessian_t   = Eigen::Matrix<scalar_t, -1, -1>; // TODO: generalize?
-    using solver_tag  = pressio::linearsolvers::direct::HouseholderQR;
-    using linsolver_t = pressio::linearsolvers::Solver<solver_tag, hessian_t>;
+    using solver_tag  = pls::direct::HouseholderQR;
+    using linsolver_t = pls::Solver<solver_tag, hessian_t>;
 
     using problem_t       = decltype(plspg::create_unsteady_problem(pressio::ode::StepScheme(), std::declval<trial_t&>(), std::declval<app_t&>()));
-    using nonlinsolver_t  = decltype(pressio::create_gauss_newton_solver(std::declval<problem_t&>(), std::declval<linsolver_t&>()));
+    using nonlinsolver_t  = decltype(pressio::nlsol::create_gauss_newton_solver(std::declval<problem_t&>(), std::declval<linsolver_t&>()));
 
 public:
 
@@ -528,10 +528,10 @@ public:
              transRoot, basisRoot, nmodes)
     , m_problem(plspg::create_unsteady_problem(odeScheme, this->m_trialSpace, *(this->m_app)))
     , m_linSolverObj(std::make_shared<linsolver_t>())
-    , m_nonlinSolver(pressio::create_gauss_newton_solver(m_problem, *m_linSolverObj))
+    , m_nonlinSolver(pressio::nlsol::create_gauss_newton_solver(m_problem, *m_linSolverObj))
     {
 
-        m_nonlinSolver.setStopCriterion(pressio::nonlinearsolvers::Stop::WhenAbsolutel2NormOfCorrectionBelowTolerance);
+        m_nonlinSolver.setStopCriterion(pressio::nlsol::Stop::WhenAbsolutel2NormOfCorrectionBelowTolerance);
         m_nonlinSolver.setStopTolerance(1e-5);
 
     }
@@ -833,8 +833,8 @@ public:
     using weigh_t  = Weigher<scalar_t>;
 
     using hessian_t   = Eigen::Matrix<scalar_t, -1, -1>; // TODO: generalize?
-    using solver_tag  = pressio::linearsolvers::direct::HouseholderQR;
-    using linsolver_t = pressio::linearsolvers::Solver<solver_tag, hessian_t>;
+    using solver_tag  = pls::direct::HouseholderQR;
+    using linsolver_t = pls::Solver<solver_tag, hessian_t>;
 
     using trialHyp_t = typename base_t::trialHyp_t;
 
@@ -845,10 +845,10 @@ public:
                                               std::declval<app_t&>(),
                                               std::declval<updaterHyp_t&>()));
 
-    using tag_t = pressio::nonlinearsolvers::impl::CompactWeightedGaussNewtonNormalEqTag;
+    using tag_t = pressio::nlsol::impl::CompactWeightedGaussNewtonNormalEqTag;
 
     using nonlinsolverHyp_t =
-        decltype(pressio::create_gauss_newton_solver(
+        decltype(pressio::nlsol::create_gauss_newton_solver(
             std::declval<problemHyp_t&>(),
             std::declval<linsolver_t&>(),
             std::declval<weigh_t&>(),
@@ -924,12 +924,12 @@ public:
         );
 
         m_nonlinSolverHyper = std::make_shared<nonlinsolverHyp_t>(
-            pressio::create_gauss_newton_solver(
+            pressio::nlsol::create_gauss_newton_solver(
                 *m_problemHyper, *m_linSolverObjHyper, *m_weigher, *m_tag
             )
         );
 
-        m_nonlinSolverHyper->setStopCriterion(pressio::nonlinearsolvers::Stop::WhenAbsolutel2NormOfCorrectionBelowTolerance);
+        m_nonlinSolverHyper->setStopCriterion(pressio::nlsol::Stop::WhenAbsolutel2NormOfCorrectionBelowTolerance);
         m_nonlinSolverHyper->setStopTolerance(1e-5);
     }
 
