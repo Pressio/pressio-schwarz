@@ -16,7 +16,7 @@ else()
   FetchContent_Declare(
     pressio-ops
     GIT_REPOSITORY https://github.com/Pressio/pressio-ops.git
-    GIT_TAG        develop
+    GIT_TAG        0.17.0
     GIT_PROGRESS   TRUE
     GIT_SHALLOW    TRUE
   )
