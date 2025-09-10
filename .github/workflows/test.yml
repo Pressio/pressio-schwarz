@@ -50,14 +50,14 @@ jobs:
         with:
           repository: Pressio/pressio
           path: pressio
-          ref: develop
+          ref: 0.17.0
 
       - name: Clone pressio-demoapps repository, develop branch
         uses: actions/checkout@v2
         with:
           repository: Pressio/pressio-demoapps
           path: pressio-demoapps
-          ref: develop
+          ref: 0.17.0
 
       - name: Install packages
         run: |

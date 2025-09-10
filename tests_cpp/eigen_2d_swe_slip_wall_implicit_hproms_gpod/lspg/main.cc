@@ -1,5 +1,5 @@
 
-#include "pressio/ode_steppers_implicit.hpp"
+#include "pressio/ode_steppers.hpp"
 #include "pressio/ode_advancers.hpp"
 #include "pressiodemoapps/swe2d.hpp"
 #include "../../observer.hpp"
@@ -16,7 +16,7 @@ int main()
     namespace pode = pressio::ode;
     namespace prom = pressio::rom;
     namespace plspg = pressio::rom::lspg;
-    namespace pnlins = pressio::nonlinearsolvers;
+    namespace pnlins = pressio::nlsol;
 
     const auto meshObjFull = pda::load_cellcentered_uniform_mesh_eigen("./full_mesh");
     const auto meshObjHyp = pda::load_cellcentered_uniform_mesh_eigen("./sample_mesh");
@@ -74,16 +74,16 @@ int main()
 
     // define solver
     using hessian_t       = Eigen::Matrix<scalar_type, -1, -1>;
-    using solver_tag      = pressio::linearsolvers::direct::HouseholderQR;
-    using linear_solver_t = pressio::linearsolvers::Solver<solver_tag, hessian_t>;
-    using tag_t           = pressio::nonlinearsolvers::impl::CompactWeightedGaussNewtonNormalEqTag;
+    using solver_tag      = pressio::linsol::direct::HouseholderQR;
+    using linear_solver_t = pressio::linsol::Solver<solver_tag, hessian_t>;
+    using tag_t           = pnlins::impl::CompactWeightedGaussNewtonNormalEqTag;
     linear_solver_t linearSolver;
     tag_t tag;
 
     // Gauss-Newton with gappy POD weighting
     auto weighter = pschwarz::Weigher<scalar_type>("gappy_pod", basisfile, sampleFile, nmodes_gpod, numDofsPerCell);
     using weigher_t = decltype(weighter);
-    auto solver = pressio::create_gauss_newton_solver(problem, linearSolver, weighter, tag);
+    auto solver = pnlins::create_gauss_newton_solver(problem, linearSolver, weighter, tag);
     solver.setStopCriterion(pnlins::Stop::WhenAbsolutel2NormOfGradientBelowTolerance);
     solver.setStopTolerance(1e-5);
 
@@ -96,7 +96,8 @@ int main()
     const auto Nsteps = pressio::ode::StepCount(tf/dt);
 
     auto runtimeStart = std::chrono::high_resolution_clock::now();
-    pode::advance_n_steps(problem, reducedState, 0.0, dt, Nsteps, Obs, solver);
+    auto policy = pressio::ode::steps_fixed_dt(0., Nsteps, dt);
+    pode::advance(problem, reducedState, policy, solver, Obs);
     auto runtimeEnd = std::chrono::high_resolution_clock::now();
     auto nsElapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(runtimeEnd - runtimeStart).count();
     double secElapsed = static_cast<double>(nsElapsed) * 1e-9;

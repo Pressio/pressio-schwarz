@@ -47,7 +47,7 @@
 #define PRESSIODEMOAPPS_SCHWARZ_HPP_
 
 #include "BS_thread_pool.hpp"
-#include "pressio/ode_steppers_implicit.hpp"
+#include "pressio/ode_steppers.hpp"
 #include "pressiodemoapps/impl/ghost_relative_locations.hpp"
 #include "./custom_bcs.hpp"
 #include "./subdomain.hpp"
